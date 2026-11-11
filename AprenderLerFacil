@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full select-none">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Alfabetiza 2026 - Aprenda a Ler Brincando</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts 2026 Playful -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --font-main: 'Fredoka', cursive, sans-serif;
+            --font-num: 'Nunito', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-main);
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior: none;
+            background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #0f172a 60%, #020617 100%);
+        }
+
+        /* Glassmorphism 2026 Kids */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.25);
+        }
+
+        /* Botões Táteis 3D Pop */
+        .btn-pop {
+            transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            user-select: none;
+        }
+
+        .btn-pop:active, .btn-pop.pressed {
+            transform: scale(0.92) translateY(4px);
+            box-shadow: 0 2px 0 shadow-transparent !important;
+        }
+
+        /* Card de Sílaba */
+        .syllable-card {
+            background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 20px rgba(236, 72, 153, 0.35);
+        }
+
+        .syllable-card:hover {
+            transform: translateY(-4px) scale(1.03);
+        }
+
+        /* Efeito de Pulso Suave */
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.6)); }
+            50% { transform: scale(1.05); filter: drop-shadow(0 0 25px rgba(236, 72, 153, 0.8)); }
+        }
+
+        .glow-pulse {
+            animation: pulse-glow 3s infinite ease-in-out;
+        }
+
+        /* Scrollbar Personalizada */
+        .custom-scroll::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="h-full w-full flex items-center justify-center p-2 sm:p-4 text-white overflow-hidden">
+
+    <!-- Container Principal Responsivo -->
+    <main class="w-full max-w-md h-full max-h-[920px] flex flex-col justify-between relative z-10">
+        
+        <!-- App Wrapper com Estática Glassmorphic -->
+        <div class="glass-panel w-full h-full rounded-[36px] p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden">
+            
+            <!-- Header Top Bar -->
+            <header class="flex items-center justify-between z-20 pb-2 border-b border-white/10">
+                <div class="flex items-center gap-2">
+                    <span class="text-3xl">🔤</span>
+                    <div>
+                        <h1 class="text-lg font-bold leading-tight bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-pink-400 to-cyan-300">
+                            ALFABETIZA 2026
+                        </h1>
+                        <p class="text-[10px] text-cyan-200 tracking-wider uppercase font-semibold">Aprenda a ler rindo!</p>
+                    </div>
+                </div>
+
+                <!-- Placard de Estrelas & Voz -->
+                <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1.5 bg-amber-500/20 border border-amber-400/40 rounded-full px-3 py-1 backdrop-blur-md">
+                        <span class="text-amber-400 text-lg">⭐</span>
+                        <span id="starCounter" class="text-amber-300 font-extrabold text-base font-['Nunito']">0</span>
+                    </div>
+
+                    <button id="toggleAudioBtn" title="Ativar/Desativar Áudio" class="btn-pop w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-lg">
+                        🔊
+                    </button>
+                </div>
+            </header>
+
+            <!-- Área de Conteúdo dos Módulos (Trocado via JS) -->
+            <section id="moduleContainer" class="flex-1 my-3 relative overflow-y-auto custom-scroll flex flex-col justify-center">
+
+                <!-- MÓDULO 1: ESTUDO DE SÍLABAS -->
+                <div id="moduleStudy" class="w-full flex flex-col h-full justify-between gap-3">
+                    <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
+                        <p class="text-xs text-cyan-300 mb-2 font-semibold">1. Escolha uma família silábica:</p>
+                        <!-- Selector de Consoante -->
+                        <div id="consonantBar" class="flex gap-2 overflow-x-auto pb-2 custom-scroll">
+                            <!-- Injetado por JS -->
+                        </div>
+                    </div>
+
+                    <!-- Exibição da Família Silábica Selecionada -->
+                    <div class="bg-gradient-to-b from-indigo-900/60 to-purple-900/60 rounded-3xl p-4 border border-purple-400/30 flex flex-col items-center justify-center flex-1">
+                        <h2 id="familyTitle" class="text-sm font-bold text-pink-300 uppercase mb-3 tracking-wider">Família do B</h2>
+                        
+                        <div id="syllablesGrid" class="grid grid-cols-5 gap-2 w-full mb-4">
+                            <!-- Cartões de Sílaba (BA, BE, BI...) -->
+                        </div>
+
+                        <!-- Card de Palavra Exemplo -->
+                        <div id="exampleCard" class="bg-black/40 border border-white/15 rounded-2xl p-3 w-full flex items-center justify-between cursor-pointer hover:bg-black/60 transition group">
+                            <div class="flex items-center gap-3">
+                                <span id="exampleEmoji" class="text-4xl group-hover:scale-110 transition">🍌</span>
+                                <div class="text-left">
+                                    <span id="exampleWord" class="text-xl font-bold tracking-wide text-amber-300">BANANA</span>
+                                    <p class="text-[11px] text-slate-300">Toque para ouvir a sílaba pausada</p>
+                                </div>
+                            </div>
+                            <button class="btn-pop bg-pink-500 hover:bg-pink-600 text-white rounded-xl p-2.5 shadow-lg">
+                                🔊
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MÓDULO 2: FORMADOR DE PALAVRAS -->
+                <div id="moduleBuilder" class="w-full flex flex-col h-full justify-between gap-3 hidden">
+                    <div class="text-center">
+                        <p class="text-xs text-cyan-300 font-semibold mb-1">2. Monte a palavra da imagem:</p>
+                        <div class="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-2xl border border-white/20 my-1">
+                            <span id="targetEmoji" class="text-5xl glow-pulse">🐱</span>
+                        </div>
+                    </div>
+
+                    <!-- Espaço de Montagem da Palavra -->
+                    <div class="bg-black/40 border-2 border-dashed border-cyan-400/50 rounded-3xl p-3 min-h-[90px] flex items-center justify-center gap-2 flex-wrap shadow-inner" id="dropZone">
+                        <span class="text-xs text-slate-400 italic" id="dropPlaceholder">Toque nas sílabas abaixo na ordem correta</span>
+                    </div>
+
+                    <!-- Botão de Ouvir Palavra Montada / Limpar -->
+                    <div class="flex gap-2">
+                        <button id="clearBuilderBtn" class="btn-pop flex-1 bg-red-500/20 border border-red-400/40 py-2.5 rounded-2xl text-red-300 text-xs font-bold uppercase tracking-wider">
+                            🗑️ Limpar
+                        </button>
+                        <button id="checkWordBtn" class="btn-pop flex-1 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-sm font-extrabold py-2.5 rounded-2xl shadow-lg shadow-emerald-500/30 uppercase tracking-wider">
+                            ✅ Verificar
+                        </button>
+                    </div>
+
+                    <!-- Opções de Sílabas Embaralhadas -->
+                    <div class="bg-white/5 rounded-2xl p-3 border border-white/10">
+                        <p class="text-[11px] text-slate-400 mb-2 text-center">Toque para adicionar:</p>
+                        <div id="builderOptions" class="flex flex-wrap justify-center gap-2.5">
+                            <!-- Opções dinâmicas -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MÓDULO 3: JOGO DO SOM (OUVIR E ACERTAR) -->
+                <div id="moduleGame" class="w-full flex flex-col h-full justify-between gap-3 hidden">
+                    <div class="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-400/30 rounded-2xl p-4 text-center">
+                        <p class="text-xs text-cyan-200 font-bold mb-2">3. Ouça atentamente e toque no som correto:</p>
+                        <button id="playAudioPromptBtn" class="btn-pop bg-gradient-to-r from-cyan-400 to-blue-500 text-slate-950 font-black px-6 py-3 rounded-full text-base shadow-xl flex items-center justify-center gap-2 mx-auto">
+                            <span>🔊</span> Ouvir Som Novamente
+                        </button>
+                    </div>
+
+                    <!-- Grade de Opções para Escolha Auditiva -->
+                    <div id="gameOptionsGrid" class="grid grid-cols-2 gap-3 flex-1 items-center my-auto">
+                        <!-- Opções dinâmicas -->
+                    </div>
+
+                    <div id="gameFeedback" class="text-center min-h-[30px] text-sm font-bold"></div>
+                </div>
+
+            </section>
+
+            <!-- Bottom Navigation Bar (Navegação entre Módulos) -->
+            <nav class="grid grid-cols-3 gap-2 pt-2 border-t border-white/10 z-20">
+                <button data-nav="study" class="nav-btn btn-pop py-2.5 rounded-2xl bg-indigo-600 text-white font-bold text-xs flex flex-col items-center justify-center gap-0.5 shadow-md">
+                    <span class="text-base">📚</span> Sílabas
+                </button>
+                <button data-nav="builder" class="nav-btn btn-pop py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-slate-300 font-bold text-xs flex flex-col items-center justify-center gap-0.5">
+                    <span class="text-base">🧩</span> Palavras
+                </button>
+                <button data-nav="game" class="nav-btn btn-pop py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-slate-300 font-bold text-xs flex flex-col items-center justify-center gap-0.5">
+                    <span class="text-base">🎧</span> Jogo do Som
+                </button>
+            </nav>
+
+        </div>
+    </main>
+
+    <!-- Script Principal com Lógica de Sílabas, Speech Synthesis e Gamificação -->
+    <script>
+        // BANCO DE DADOS DE SÍLABAS E PALAVRAS PARA ALFABETIZAÇÃO
+        const SYLLABLE_FAMILIES = [
+            { consonant: 'B', syllables: ['BA', 'BE', 'BI', 'BO', 'BU'], example: { word: 'BOCA', emoji: '👄', syllables: ['BO', 'CA'] } },
+            { consonant: 'C', syllables: ['CA', 'CE', 'CI', 'CO', 'CU'], example: { word: 'CASA', emoji: '🏠', syllables: ['CA', 'SA'] } },
+            { consonant: 'D', syllables: ['DA', 'DE', 'DI', 'DO', 'DU'], example: { word: 'DADO', emoji: '🎲', syllables: ['DA', 'DO'] } },
+            { consonant: 'F', syllables: ['FA', 'FE', 'FI', 'FO', 'FU'], example: { word: 'FOCA', emoji: '🦭', syllables: ['FO', 'CA'] } },
+            { consonant: 'G', syllables: ['GA', 'GE', 'GI', 'GO', 'GU'], example: { word: 'GATO', emoji: '🐱', syllables: ['GA', 'TO'] } },
+            { consonant: 'L', syllables: ['LA', 'LE', 'LI', 'LO', 'LU'], example: { word: 'LIXO', emoji: '🗑️', syllables: ['LI', 'XO'] } },
+            { consonant: 'M', syllables: ['MA', 'ME', 'MI', 'MO', 'MU'], example: { word: 'MALA', emoji: '🧳', syllables: ['MA', 'LA'] } },
+            { consonant: 'P', syllables: ['PA', 'PE', 'PI', 'PO', 'PU'], example: { word: 'PATO', emoji: '🦆', syllables: ['PA', 'TO'] } },
+            { consonant: 'R', syllables: ['RA', 'RE', 'RI', 'RO', 'RU'], example: { word: 'RATO', emoji: '🐀', syllables: ['RA', 'TO'] } },
+            { consonant: 'S', syllables: ['SA', 'SE', 'SI', 'SO', 'SU'], example: { word: 'SAPO', emoji: '🐸', syllables: ['SA', 'PO'] } },
+            { consonant: 'T', syllables: ['TA', 'TE', 'TI', 'TO', 'TU'], example: { word: 'TATU', emoji: '🦔', syllables: ['TA', 'TU'] } },
+            { consonant: 'V', syllables: ['VA', 'VE', 'VI', 'VO', 'VU'], example: { word: 'VACA', emoji: '🐮', syllables: ['VA', 'CA'] } },
+            { consonant: 'Z', syllables: ['ZA', 'ZE', 'ZI', 'ZO', 'ZU'], example: { word: 'ZEBRA', emoji: '🦓', syllables: ['ZE', 'BRA'] } }
+        ];
+
+        const WORD_CHALLENGES = [
+            { word: 'BOCA', emoji: '👄', syllables: ['BO', 'CA'], distractor: ['PA', 'TE'] },
+            { word: 'SAPATO', emoji: '👞', syllables: ['SA', 'PA', 'TO'], distractor: ['LA', 'BO'] },
+            { word: 'GATO', emoji: '🐱', syllables: ['GA', 'TO'], distractor: ['MI', 'FA'] },
+            { word: 'BOLA', emoji: '⚽', syllables: ['BO', 'LA'], distractor: ['CA', 'PU'] },
+            { word: 'PIPA', emoji: '🪁', syllables: ['PI', 'PA'], distractor: ['TA', 'VU'] },
+            { word: 'BALEIA', emoji: '🐳', syllables: ['BA', 'LE', 'I', 'A'], distractor: ['CO', 'MO'] },
+            { word: 'CAVALO', emoji: '🐎', syllables: ['CA', 'VA', 'LO'], distractor: ['ME', 'BI'] },
+            { word: 'MACAKO', emoji: '🐒', syllables: ['MA', 'CA', 'CO'], distractor: ['DE', 'SU'] }
+        ];
+
+        // Estado do Aplicativo
+        let currentFamilyIndex = 0;
+        let currentBuilderChallengeIndex = 0;
+        let userBuiltSyllables = [];
+        let stars = 0;
+        let audioMuted = false;
+
+        let gameTargetItem = null; // Para o Jogo do Som
+
+        // Web Audio API Synthesizer para Efeitos Sonoros Rápidos
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function playSoundFx(type) {
+            if (audioMuted) return;
+            try {
+                if (!audioCtx) audioCtx = new AudioCtx();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(450, now);
+                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.04);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.linearRampToValueAtTime(0.001, now + 0.04);
+                    osc.start(now);
+                    osc.stop(now + 0.04);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.linearRampToValueAtTime(0.001, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.setValueAtTime(180, now + 0.08);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.linearRampToValueAtTime(0.001, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                }
+            } catch(e) {}
+        }
+
+        // Web Speech API (Locução em PT-BR)
+        function speakText(text, rate = 0.85) {
+            if (audioMuted) return;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Parar falas anteriores
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'pt-BR';
+                utterance.rate = rate; // Velocidade ligeiramente pausada para clareza infantil
+                utterance.pitch = 1.1; // Tom levemente mais agudo/amigável
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function speakSyllableSequence(syllablesArray, finalWord) {
+            if (audioMuted) return;
+            let delay = 0;
+            syllablesArray.forEach((syl, i) => {
+                setTimeout(() => {
+                    speakText(syl, 0.8);
+                }, delay);
+                delay += 750;
+            });
+
+            setTimeout(() => {
+                speakText(finalWord, 0.9);
+            }, delay + 200);
+        }
+
+        // --- INICIALIZAÇÃO E NAVEGAÇÃO ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initConsonantsBar();
+            loadFamily(0);
+            initBuilderChallenge(0);
+            initSoundGame();
+            updateStarDisplay();
+
+            // Navegação de Módulos
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    playSoundFx('click');
+                    const nav = btn.dataset.nav;
+
+                    // Atualizar visual dos botões
+                    document.querySelectorAll('.nav-btn').forEach(b => {
+                        b.classList.remove('bg-indigo-600', 'text-white');
+                        b.classList.add('bg-white/10', 'text-slate-300');
+                    });
+                    btn.classList.remove('bg-white/10', 'text-slate-300');
+                    btn.classList.add('bg-indigo-600', 'text-white');
+
+                    // Mostrar/Ocultar containers
+                    document.getElementById('moduleStudy').classList.toggle('hidden', nav !== 'study');
+                    document.getElementById('moduleBuilder').classList.toggle('hidden', nav !== 'builder');
+                    document.getElementById('moduleGame').classList.toggle('hidden', nav !== 'game');
+
+                    if (nav === 'game') initSoundGame();
+                });
+            });
+
+            // Toggle Audio Mute
+            document.getElementById('toggleAudioBtn').addEventListener('click', () => {
+                audioMuted = !audioMuted;
+                document.getElementById('toggleAudioBtn').textContent = audioMuted ? '🔇' : '🔊';
+                if (audioMuted && 'speechSynthesis' in 
